@@ -105,21 +105,37 @@ const PolicyStatusLineChart = () => {
 
     // Axis labels removed per UI request (keeps ticks only)
 
-    // KEEPING YOUR ORIGINAL LINE GENERATOR
+    // Determine which property to use on the x axis depending on the period
+    const xKey = period === "DAY" ? "time" : period === "YEAR" ? "year" : period === "MONTH" ? "month" : "day";
+
+    // Helper to safely compute x position. Returns null if value not found in scale domain
+    const getXPos = (d) => {
+      if (!d) return null;
+      const v = d[xKey];
+      if (v == null) return null;
+      const mapped = xScale(v);
+      if (mapped == null || Number.isNaN(mapped)) return null;
+      const bw = typeof xScale.bandwidth === "function" ? xScale.bandwidth() / 2 : 0;
+      return mapped + bw;
+    };
+
+    // Line generator using the safe getXPos
     const lineGen = (key) =>
       d3
         .line()
-        .x((d) =>
-          period === "DAY"
-            ? xScale(d.time)+ xScale.bandwidth() / 2
-            : xScale(d.year || d.month || d.day) + xScale.bandwidth() / 2
-        )
+        .x((d) => getXPos(d))
         .y((d) => yScale(+d[key]))
         .curve(d3.curveMonotoneX);
 
-    // KEEPING YOUR ORIGINAL LINE ANIMATION
+    // Draw lines only with filtered data (rows that have valid x and y values)
     Object.entries(colorMap).forEach(([key, color]) => {
-      const path = svg.append("path").datum(data)
+      const filtered = data.filter((d) => {
+        const x = getXPos(d);
+        const y = +d[key];
+        return x != null && !Number.isNaN(y);
+      });
+
+      const path = svg.append("path").datum(filtered)
         .attr("fill", "none")
         .attr("stroke", color)
         .attr("stroke-width", 3)
@@ -136,13 +152,13 @@ const PolicyStatusLineChart = () => {
         .attr("stroke-dashoffset", 0);
     });
 
-    // NEW: Data points with tooltips (added feature)
-  data.forEach((d) => {
-      const xPos = xScale(d.time || d.year || d.month || d.day) + xScale.bandwidth() / 2;
-      
+    // Draw dots only for rows that have valid x positions and valid y values
+    const visiblePoints = data.filter((d) => getXPos(d) != null);
+    visiblePoints.forEach((d) => {
+      const xPos = getXPos(d);
       Object.entries(colorMap).forEach(([key, color]) => {
         const yPos = yScale(+d[key]);
-        
+        if (yPos == null || Number.isNaN(yPos)) return;
         const dot = svg.append("circle")
           .attr("cx", xPos)
           .attr("cy", yPos)
@@ -158,11 +174,9 @@ const PolicyStatusLineChart = () => {
         // Tooltip functionality
         dot.on("mouseover", () => {
           tooltip.style("opacity", 1).style("display", "block");
-          
-          const label = period === "YEAR" ? d.year : 
-                       period === "MONTH" ? d.month : 
-                       period === "WEEK" ? d.day : d.time;
-          
+
+          const label = period === "YEAR" ? d.year : period === "MONTH" ? d.month : period === "WEEK" ? d.day : d.time;
+
           tooltip.html(`
             <div><strong>${label}</strong></div>
             <div style="color:${colorMap.new_policy}">New: ${d.new_policy}</div>
