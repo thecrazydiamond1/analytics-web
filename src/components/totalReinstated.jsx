@@ -107,16 +107,46 @@ const ReinstatedPieChart = () => {
         .attr('transform', 'translate(0,0) scale(1)');
     });
 
-    arcsGroup.on('click', () => {
-       setShowTable(true);  
+    arcsGroup.on('click', (event, d) => {
+      const label = d.data.label;
+      if(label === 'Reinstated' ){
+        setShowTable(true);
+      } else if(label === 'Others'){
+        setShowTable(false);
+      }   
     });
 
   }, [counts, policyData]);
 
+  const overlayStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    backdropFilter: 'blur(5px)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  };
+
+  const modalStyle = {
+    backgroundColor: 'white',
+    padding: '20px',
+    borderRadius: '8px',
+    maxHeight: '80vh',
+    overflowY: 'auto',
+    maxWidth: '90vw',
+    boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+    position: 'relative',
+  };
+
   return (
     <>
       <div style={{ display: 'inline-block', textAlign: 'center', position: 'relative'}}>
-        <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Member Registration Status</div>
+        <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Reinstated Policy Status</div>
         <svg ref={svgRef} />
         <div
           ref={tooltipRef}
@@ -132,7 +162,12 @@ const ReinstatedPieChart = () => {
           }}
         />
         {showTable && (
-          <ReinstatedTable data={policyData.reinstated} />
+          <div style={overlayStyle} onClick={() => setShowTable(false)}>
+            <div style={modalStyle} onClick={e => e.stopPropagation()}>
+              <button onClick={() => setShowTable(false)} style={{ position: 'absolute', top: 10, right: 10 }}>Close</button>
+              <ReinstatedTable data={policyData.reinstated} />
+            </div>
+          </div>
         )}
       </div>
     </>
