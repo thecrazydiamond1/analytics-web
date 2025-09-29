@@ -4,6 +4,7 @@ import NonLoggedInAgentsChart from "./nonLoggedInAgents";
 import MembersPieChart from './unRegisteredMembers';
 import ReinstatedPieChart from './totalReinstated';
 import PolicyStatusLineChart from './policyStatusChart';
+import TierBasedLineChart from './tierBasedEnrollments';
 
 const AdminDashboard = () => {
   return (
@@ -16,8 +17,7 @@ const AdminDashboard = () => {
       </header>
 
       <main style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-        {/* Top row: three pie charts */}
-        <div style={{ display: 'flex', gap: '16px', justifyContent: 'space-between', alignItems: 'stretch' }}>
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ flex: 1, minWidth: 0, maxWidth: 360, background: '#fff', padding: 12, borderRadius: 8, boxShadow: '0 6px 16px rgba(0,0,0,0.04)' }}>
             <NonLoggedInAgentsChart />
           </div>
@@ -29,12 +29,18 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Bottom row: left = Policy status (wider), middle & right = other charts */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '16px', alignItems: 'start' }}>
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', alignItems: 'start' }}>
           <div style={{ background: '#fff', padding: 14, borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.06)', minHeight: 320 }}>
-            {/* Policy chart container; wrapping keeps SVG size controlled and aligned left */}
             <PolicyStatusLineChart />
           </div>
+        
+        
+
+          <div style={{ background: '#fff', padding: 14, borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.06)', minHeight: 320 }}>
+            <TierBasedLineChart />
+          </div>
+
+        
 
           {/* <div style={{ background: '#fff', padding: 12, borderRadius: 10, boxShadow: '0 8px 18px rgba(0,0,0,0.05)', minHeight: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <MembersPieChart />

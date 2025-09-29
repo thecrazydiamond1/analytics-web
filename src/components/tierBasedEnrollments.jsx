@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import * as d3 from "d3";
 
-const PolicyStatusLineChart = () => {
+const TierBasedLineChart = () => {
   const [period, setPeriod] = useState("YEAR");
   const [date, setDate] = useState("");
   const [data, setData] = useState([]);
@@ -11,10 +11,10 @@ const PolicyStatusLineChart = () => {
   const tooltipRef = useRef();
 
   const colorMap = React.useMemo(() => ({
-    new_policy: "#3498db",
-    withdrawn_policy: "#e74c3c",
-    termed_policy: "#2ecc71",
-    reinstated_policy: "#f39c12",
+    IO_tier: "#3498db",
+    IF_tier: "#e74c3c",
+    IS_tier: "#2ecc71",
+    IC_tier: "#f39c12",
   }), []);
 
   const debounceRef = useRef(null);
@@ -31,7 +31,7 @@ const PolicyStatusLineChart = () => {
     debounceRef.current = setTimeout(() => {
       const requestData = period === "DAY" ? { data: "DAY", date } : { data: period };
       
-      axios.post("http://127.0.0.1:3000/api/policystatus", requestData)
+      axios.post("http://127.0.0.1:3000/api/enrollments/tier", requestData)
         .then((res) => {
           let responseData = res.data.data;
           if (period === "DAY" && !Array.isArray(responseData)) {
@@ -58,6 +58,7 @@ const PolicyStatusLineChart = () => {
     // If there's no data, clear any previous drawing and exit early
     if (!data || data.length === 0) {
       svg.selectAll("*").remove();
+      // hide tooltip if visible
       if (tooltip) {
         tooltip.style("opacity", 0).style("display", "none");
       }
@@ -83,7 +84,7 @@ const PolicyStatusLineChart = () => {
     }
 
     const maxY = d3.max(data, (d) =>
-      Math.max(+d.new_policy, +d.withdrawn_policy, +d.termed_policy, +d.reinstated_policy)
+      Math.max(+d.IO_tier, +d.IF_tier, +d.IS_tier, +d.IC_tier)
     );
     const yScale = d3.scaleLinear().domain([0, maxY]).nice().range([height - margin.bottom, margin.top]);
 
@@ -175,10 +176,10 @@ const PolicyStatusLineChart = () => {
 
           tooltip.html(`
             <div><strong>${label}</strong></div>
-            <div style="color:${colorMap.new_policy}">New: ${d.new_policy}</div>
-            <div style="color:${colorMap.withdrawn_policy}">Withdrawn: ${d.withdrawn_policy}</div>
-            <div style="color:${colorMap.termed_policy}">Termed: ${d.termed_policy}</div>
-            <div style="color:${colorMap.reinstated_policy}">Reinstated: ${d.reinstated_policy}</div>
+            <div style="color:${colorMap.IO_tier}">IO: ${d.IO_tier}</div>
+            <div style="color:${colorMap.IF_tier}">IF: ${d.IF_tier}</div>
+            <div style="color:${colorMap.IS_tier}">IS: ${d.IS_tier}</div>
+            <div style="color:${colorMap.IC_tier}">IC: ${d.IC_tier}</div>
           `);
         })
         .on("mousemove", (event) => {
@@ -202,7 +203,7 @@ const PolicyStatusLineChart = () => {
       color: "#111827"
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-  <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#0f172a", letterSpacing: "0.2px" }}>Policy Status Line Chart</h2>
+  <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#0f172a", letterSpacing: "0.2px" }}>Tier Based Enrolls</h2>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <select
@@ -329,4 +330,4 @@ const PolicyStatusLineChart = () => {
   );
 };
 
-export default PolicyStatusLineChart;
+export default TierBasedLineChart;
