@@ -109,7 +109,7 @@ const TierBasedLineChart = () => {
     const yScale = d3.scaleLinear().domain([0, maxY]).nice().range([height - margin.bottom, margin.top]);
 
     const xAxis = d3.axisBottom(xScale);
-    const yAxis = period === "DAY" || period === "WEEK" ? d3.axisLeft(yScale).ticks(maxY).tickFormat(d3.format("d")) : d3.axisLeft(yScale);
+    const yAxis = period === "DAY" ? d3.axisLeft(yScale).ticks(maxY).tickFormat(d3.format("d")) : d3.axisLeft(yScale);
 
     svg
       .append("g")
