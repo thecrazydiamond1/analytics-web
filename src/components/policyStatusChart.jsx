@@ -5,6 +5,10 @@ import * as d3 from "d3";
 const PolicyStatusLineChart = () => {
   const [period, setPeriod] = useState("YEAR");
   const [date, setDate] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [weekDate, setWeekDate] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const svgRef = useRef();
@@ -23,16 +27,31 @@ const PolicyStatusLineChart = () => {
   useEffect(() => {
 
     setLoading(true);
-    
+
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
 
     debounceRef.current = setTimeout(() => {
-      const requestData = period === "DAY" ? { data: "DAY", date } : { data: period };
-      
+
+      if (period === "MONTH" && (!fromDate || !toDate)) {
+        setData([]);
+        setErrorMessage("");
+        setLoading(false);
+        return;
+      }
+
+      const requestData = period === "DAY"
+        ? { data: "DAY", date }
+        : period === "MONTH"
+        ? { data: "MONTH", from: fromDate, to: toDate }
+        : period === "WEEK"
+        ? { data: "WEEK", weekDate }
+        : { data: period };
+
       axios.post("http://127.0.0.1:3000/api/policystatus", requestData)
         .then((res) => {
+          setErrorMessage("");
           let responseData = res.data.data;
           if (period === "DAY" && !Array.isArray(responseData)) {
             responseData = [responseData];
@@ -40,7 +59,9 @@ const PolicyStatusLineChart = () => {
           setData(Array.isArray(responseData) ? responseData : []);
         })
         .catch((err) => {
-          console.error("Error fetching data:", err);
+          const serverMsg = err && err.response && err.response.data && err.response.data.message;
+          const msg = serverMsg || err.message || "Error fetching data";
+          setErrorMessage(msg);
           setData([]);
         })
         .finally(() => setLoading(false));
@@ -49,13 +70,12 @@ const PolicyStatusLineChart = () => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [period, date]);
+  }, [period, date, fromDate, toDate, weekDate]);
 
   useEffect(() => {
     const svg = d3.select(svgRef.current);
     const tooltip = d3.select(tooltipRef.current);
 
-    // If there's no data, clear any previous drawing and exit early
     if (!data || data.length === 0) {
       svg.selectAll("*").remove();
       if (tooltip) {
@@ -88,7 +108,7 @@ const PolicyStatusLineChart = () => {
     const yScale = d3.scaleLinear().domain([0, maxY]).nice().range([height - margin.bottom, margin.top]);
 
     const xAxis = d3.axisBottom(xScale);
-    const yAxis = period === "DAY" || period === "WEEK" ? d3.axisLeft(yScale).ticks(maxY).tickFormat(d3.format("d")) : d3.axisLeft(yScale);
+    const yAxis = period === "DAY" ? d3.axisLeft(yScale).ticks(maxY).tickFormat(d3.format("d")) : d3.axisLeft(yScale);
 
     svg
       .append("g")
@@ -171,7 +191,7 @@ const PolicyStatusLineChart = () => {
         dot.on("mouseover", () => {
           tooltip.style("opacity", 1).style("display", "block");
 
-          const label = period === "YEAR" ? d.year : period === "MONTH" ? d.month : period === "WEEK" ? d.day : d.time;
+          const label = period === "YEAR" ? d.year : period === "MONTH" ? d.year+d.month : period === "WEEK" ? d.day : d.time;
 
           tooltip.html(`
             <div><strong>${label}</strong></div>
@@ -244,6 +264,43 @@ const PolicyStatusLineChart = () => {
               }}
             />
           )}
+          {period === "MONTH" && (
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginLeft: 4 }}>
+              <input
+                type="month"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                max={new Date().toISOString().slice(0,7)}
+                style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '8px', border: '1px solid #e6e9ee', outline: 'none', background: '#fff' }}
+              />
+              <span style={{ color: '#9ca3af', fontSize: 12 }}>to</span>
+              <input
+                type="month"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                max={new Date().toISOString().slice(0,7)}
+                style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '8px', border: '1px solid #e6e9ee', outline: 'none', background: '#fff' }}
+              />
+            </div>
+          )}
+          {period === "WEEK" && (
+            <input
+              type="date"
+              value={weekDate}
+              onChange={(e) => setWeekDate(e.target.value)}
+              max={new Date().toISOString().split("T")[0]}
+              style={{
+                padding: "6px 8px",
+                fontSize: "13px",
+                borderRadius: "8px",
+                border: "1px solid #e6e9ee",
+                outline: "none",
+                cursor: "pointer",
+                marginLeft: 6,
+                background: "#fff"
+              }}
+            />
+          )}
         </div>
       </div>
 
@@ -264,6 +321,22 @@ const PolicyStatusLineChart = () => {
             fontWeight: 600
           }}>
             Loading data...
+          </div>
+        )}
+        {/* show API error message if present */}
+        {!loading && errorMessage && (
+          <div style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "center",
+            zIndex: 5,
+            pointerEvents: "none",
+            color: "#6b7280",
+            fontSize: 14
+          }}>
+            {errorMessage}
           </div>
         )}
         
