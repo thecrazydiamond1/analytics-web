@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import * as d3 from 'd3';
 
-const MembersPieChart = () => {
+const MembersPieChart = ({ onSendData = () => {} }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
   const [counts, setCounts] = useState({ unreg_counts: 0, reg_counts: 0 });
@@ -14,6 +14,7 @@ const MembersPieChart = () => {
     axios.get('http://127.0.0.1:3000/api/un-reg/members')
       .then(response => {
         const data = response.data;
+        onSendData(data);
         setCounts({
           unreg_counts: data.unreg_counts || 0,
           reg_counts: data.reg_counts || 0,

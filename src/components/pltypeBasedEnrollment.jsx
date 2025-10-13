@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import * as d3 from "d3";
 
-const PltypeBasedStackedBarChart = () => {
+const PltypeBasedStackedBarChart = ({ onSendData = () => {} }) => {
   const [period, setPeriod] = useState("YEAR");
   const [date, setDate] = useState("");
   const [data, setData] = useState([]);
@@ -60,6 +60,7 @@ const colorMap = React.useMemo(() => ({
             responseData = [responseData];
           }
           setData(Array.isArray(responseData) ? responseData : []);
+          onSendData(responseData); 
         })
         .catch((err) => {
           const serverMsg = err && err.response && err.response.data && err.response.data.message;

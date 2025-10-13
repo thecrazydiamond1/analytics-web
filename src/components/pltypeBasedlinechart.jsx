@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import * as d3 from "d3";
 
-const TierBasedLineChart = ({ onSendData = () => {} }) => {
+const PltypeBasedLineChart = () => {
   const [period, setPeriod] = useState("YEAR");
   const [date, setDate] = useState("");
   const [data, setData] = useState([]);
@@ -14,12 +14,19 @@ const TierBasedLineChart = ({ onSendData = () => {} }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
 
-  const colorMap = React.useMemo(() => ({
-    IO_tier: "#3498db",
-    IF_tier: "#e74c3c",
-    IS_tier: "#2ecc71",
-    IC_tier: "#f39c12",
-  }), []);
+const colorMap = React.useMemo(() => ({
+    limitedmed: "#3498db",
+    medical: "#e74c3c",
+    dental: "#2ecc71",
+    hospital: "#f39c12",
+    critical: "#9b59b6",
+    lifestyle: "#1abc9c",
+    term_life: "#e67e22",
+    supplemental: "#34495e",
+    vision: "#7f8c8d",
+    accident: "#d35400",
+    others: "#95a5a6",
+}), []);
 
   const debounceRef = useRef(null);
 
@@ -48,11 +55,10 @@ const TierBasedLineChart = ({ onSendData = () => {} }) => {
       ? {data: "WEEK", weekDate}
       :{ data: period };
       
-      axios.post("http://127.0.0.1:3000/api/enrollments/tier", requestData)
+      axios.post("http://127.0.0.1:3000/api/enrollments/pltype", requestData)
         .then((res) => {
           setErrorMessage("");
           let responseData = res.data.data;
-          onSendData(responseData); 
           if (period === "DAY" && !Array.isArray(responseData)) {
             responseData = [responseData];
           }
@@ -105,7 +111,19 @@ const TierBasedLineChart = ({ onSendData = () => {} }) => {
     }
 
     const maxY = d3.max(data, (d) =>
-      Math.max(+d.IO_tier, +d.IF_tier, +d.IS_tier, +d.IC_tier)
+    Math.max(
+        +d.limitedmed,
+        +d.medical,
+        +d.dental,
+        +d.hospital,
+        +d.critical,
+        +d.lifestyle,
+        +d.term_life,
+        +d.supplemental,
+        +d.vision,
+        +d.accident,
+        +d.others
+    )
     );
     const yScale = d3.scaleLinear().domain([0, maxY]).nice().range([height - margin.bottom, margin.top]);
 
@@ -197,10 +215,17 @@ const TierBasedLineChart = ({ onSendData = () => {} }) => {
 
           tooltip.html(`
             <div><strong>${label}</strong></div>
-            <div style="color:${colorMap.IO_tier}">IO: ${d.IO_tier}</div>
-            <div style="color:${colorMap.IF_tier}">IF: ${d.IF_tier}</div>
-            <div style="color:${colorMap.IS_tier}">IS: ${d.IS_tier}</div>
-            <div style="color:${colorMap.IC_tier}">IC: ${d.IC_tier}</div>
+            <div style="color:${colorMap.limitedmed}">Limitedmed: ${d.limitedmed}</div>
+            <div style="color:${colorMap.medical}">Medical: ${d.medical}</div>
+            <div style="color:${colorMap.dental}">Dental: ${d.dental}</div>
+            <div style="color:${colorMap.hospital}">Hospital: ${d.hospital}</div>
+            <div style="color:${colorMap.critical}">Critical: ${d.critical}</div>
+            <div style="color:${colorMap.lifestyle}">Lifestyle: ${d.lifestyle}</div>
+            <div style="color:${colorMap.term_life}">Term Life: ${d.term_life}</div>
+            <div style="color:${colorMap.supplemental}">Supplemental: ${d.supplemental}</div>
+            <div style="color:${colorMap.vision}">Vision: ${d.vision}</div>
+            <div style="color:${colorMap.accident}">Accident: ${d.accident}</div>
+            <div style="color:${colorMap.others}">Others: ${d.others}</div>
           `);
         })
         .on("mousemove", (event) => {
@@ -224,7 +249,7 @@ const TierBasedLineChart = ({ onSendData = () => {} }) => {
       color: "#111827"
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-  <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#0f172a", letterSpacing: "0.2px" }}>Tier Based Enrolls</h2>
+  <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#0f172a", letterSpacing: "0.2px" }}>Plan Type Based Enrolls</h2>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <select
@@ -368,16 +393,17 @@ const TierBasedLineChart = ({ onSendData = () => {} }) => {
           }}
         />
 
-        {/* HTML legend below the chart to avoid overlap with the lines */}
-        <div style={{ display: "flex", gap: 20, alignItems: "center", justifyContent: "center", paddingTop: 12 }}>
+        {/* HTML legend below the chart */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", justifyContent: "center", paddingTop: 12, maxWidth: "100%" }}>
           {Object.entries(colorMap).map(([key, color]) => (
-            <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div key={key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 12, height: 12, borderRadius: 6, background: color, display: "inline-block", boxShadow: "0 1px 0 rgba(0,0,0,0.04)" }} />
-              <span style={{ fontSize: 13, color: "#374151", fontWeight: 600 }}>{key.replace(/_/g, " ")}</span>
+              <span style={{ fontSize: 12, color: "#374151", fontWeight: 600 }}>{key.replace(/_/g, " ")}</span>
             </div>
           ))}
         </div>
       </div>
+
 
       {/* Tooltip */}
       <div
@@ -401,5 +427,4 @@ const TierBasedLineChart = ({ onSendData = () => {} }) => {
     </div>
   );
 };
-
-export default TierBasedLineChart;
+export default PltypeBasedLineChart;

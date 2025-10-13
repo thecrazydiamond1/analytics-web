@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import * as d3 from 'd3';
 
-const AgentsPieChart = () => {
+const AgentsPieChart = ({ onSendData = () => {} }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
   const [counts, setCounts] = useState({ loggedin: 0, nonloggedin: 0 });
@@ -14,6 +14,7 @@ const AgentsPieChart = () => {
     axios.get('http://127.0.0.1:3000/api/un-log/agents')
       .then(response => {
         const data = response.data;
+        onSendData(data);
         setCounts({
           loggedin: data.loggedin_counts || 0,
           nonloggedin: data.nonLoggedin_counts || 0,

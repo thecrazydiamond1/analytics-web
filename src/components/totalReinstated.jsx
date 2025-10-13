@@ -3,7 +3,7 @@ import axios from 'axios';
 import * as d3 from 'd3';
 import ReinstatedTable from './reinstatedTable';
 
-const ReinstatedPieChart = () => {
+const ReinstatedPieChart = ({ onSendData = () => {} }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
   const [counts, setCounts] = useState({ total_reinstated: 0, others: 0 });
@@ -14,6 +14,7 @@ const ReinstatedPieChart = () => {
     axios.get('http://127.0.0.1:3000/api/reinstated')
       .then(response => {
         const data = response.data;
+        onSendData(data);
         setCounts({
           total_reinstated: data.total_reinstated || 0,
           others: data.others[0].count || 0,

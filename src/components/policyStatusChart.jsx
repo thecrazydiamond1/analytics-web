@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import * as d3 from "d3";
 
-const PolicyStatusLineChart = () => {
+const PolicyStatusLineChart = ({ onSendData = () => {} }) => {
   const [period, setPeriod] = useState("YEAR");
   const [date, setDate] = useState("");
   const [fromDate, setFromDate] = useState("");
@@ -53,6 +53,7 @@ const PolicyStatusLineChart = () => {
         .then((res) => {
           setErrorMessage("");
           let responseData = res.data.data;
+          onSendData(responseData);
           if (period === "DAY" && !Array.isArray(responseData)) {
             responseData = [responseData];
           }
