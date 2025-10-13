@@ -112,9 +112,9 @@ const MembersPieChart = () => {
       const label = d.data.label;
       let membersForSlice = [];
       if (label === 'Unregistered') {
-        membersForSlice = membersData.unreg.map(member => member.userid.toString());
+        membersForSlice = membersData.unreg.map(member => member.cemail.toString());
       } else if (label === 'Registered') {
-        membersForSlice = membersData.reg.map(member => member.userid.toString());
+        membersForSlice = membersData.reg.map(member => member.cemail.toString());
       }
       setSelectedMemberList(membersForSlice);
       setSearchTerm('');
