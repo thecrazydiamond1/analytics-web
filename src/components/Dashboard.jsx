@@ -6,6 +6,9 @@ import ReinstatedPieChart from './totalReinstated';
 import PolicyStatusLineChart from './policyStatusChart';
 import TierBasedLineChart from './tierBasedEnrollments';
 
+import PltypeBasedStackedBarChart from './pltypeBasedEnrollment';
+import PltypeBasedLineChart from './pltypeBasedlinechart';
+
 const AdminDashboard = () => {
   return (
     <div style={{ padding: '20px', fontFamily: 'Segoe UI, Arial, sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
@@ -40,7 +43,26 @@ const AdminDashboard = () => {
             <TierBasedLineChart />
           </div>
 
+          {/* <div style={{ background: '#fff', padding: 14, borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.06)', minHeight: 320 }}>
+            <PltypeBasedLineChart/>
+          </div> */}
+
         
+
+          {/* <div style={{ background: '#fff', padding: 12, borderRadius: 10, boxShadow: '0 8px 18px rgba(0,0,0,0.05)', minHeight: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <MembersPieChart />
+          </div>
+
+          <div style={{ background: '#fff', padding: 12, borderRadius: 10, boxShadow: '0 8px 18px rgba(0,0,0,0.05)', minHeight: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ReinstatedPieChart />
+          </div> */}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', alignItems: 'start' }}>
+
+          <div style={{ background: '#fff', padding: 14, borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.06)', minHeight: 320 }}>
+            <PltypeBasedStackedBarChart/>
+          </div>
 
           {/* <div style={{ background: '#fff', padding: 12, borderRadius: 10, boxShadow: '0 8px 18px rgba(0,0,0,0.05)', minHeight: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <MembersPieChart />
