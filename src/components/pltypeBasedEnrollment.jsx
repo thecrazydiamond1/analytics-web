@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import * as d3 from "d3";
+import apiClient from "../../services/apiclient";
 
-const PltypeBasedStackedBarChart = ({ onSendData = () => {} }) => {
+const PltypeBasedStackedBarChart = ({ onSendData = () => {} , onImgData = () => {} }) => {
   const [period, setPeriod] = useState("YEAR");
   const [date, setDate] = useState("");
   const [data, setData] = useState([]);
@@ -13,6 +13,7 @@ const PltypeBasedStackedBarChart = ({ onSendData = () => {} }) => {
   const [loading, setLoading] = useState(false);
   const svgRef = useRef();
   const tooltipRef = useRef();
+  const chartContainerRef = useRef();
 
 const colorMap = React.useMemo(() => ({
     limitedmed: "#4477aa",      // Blue
@@ -52,7 +53,7 @@ const colorMap = React.useMemo(() => ({
       ? {data: "WEEK", weekDate}
       :{ data: period };
       
-      axios.post("http://127.0.0.1:3000/api/enrollments/pltype", requestData)
+      apiClient.post("/enrollments/pltype", requestData)
         .then((res) => {
           setErrorMessage("");
           let responseData = res.data.data;
@@ -228,6 +229,12 @@ const colorMap = React.useMemo(() => ({
 
   }, [data, period, colorMap]);
 
+  useEffect(() => {
+    if (!data || data.length === 0) return;
+    const Element = chartContainerRef.current;
+    onImgData(Element); 
+  }, [data]);
+
   return (
     <div style={{ 
       fontFamily: "Inter, 'Segoe UI', Tahoma, Geneva, Verdana, system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial",
@@ -353,6 +360,10 @@ const colorMap = React.useMemo(() => ({
             {errorMessage}
           </div>
         )}
+        {!loading
+         
+        
+        }
         {/* placeholder when there's no data */}
         {!loading && (!data || data.length === 0) && (
           <div style={{
@@ -369,7 +380,7 @@ const colorMap = React.useMemo(() => ({
             No data available for the selected period
           </div>
         )}
-
+      <div ref={chartContainerRef} style={{ position: "relative" }}>
         <svg
           ref={svgRef}
           style={{
@@ -380,6 +391,7 @@ const colorMap = React.useMemo(() => ({
             borderRadius: "12px",
           }}
         />
+     
 
         {/* HTML legend below the chart */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", justifyContent: "center", paddingTop: 12, maxWidth: "100%" }}>
@@ -390,6 +402,7 @@ const colorMap = React.useMemo(() => ({
             </div>
           ))}
         </div>
+      </div>
       </div>
 
       {/* Tooltip */}

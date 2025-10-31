@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import * as d3 from "d3";
+import apiClient from "../../services/apiclient";
 
-const PolicyStatusLineChart = ({ onSendData = () => {} }) => {
+const PolicyStatusLineChart = ({ onSendData = () => {}, onImgData=()=>{} }) => {
   const [period, setPeriod] = useState("YEAR");
   const [date, setDate] = useState("");
   const [fromDate, setFromDate] = useState("");
@@ -13,7 +13,7 @@ const PolicyStatusLineChart = ({ onSendData = () => {} }) => {
   const [loading, setLoading] = useState(false);
   const svgRef = useRef();
   const tooltipRef = useRef();
-
+  const chartContainerRef = useRef();
   const colorMap = React.useMemo(() => ({
     new_policy: "#3498db",
     withdrawn_policy: "#e74c3c",
@@ -49,7 +49,7 @@ const PolicyStatusLineChart = ({ onSendData = () => {} }) => {
         ? { data: "WEEK", weekDate }
         : { data: period };
 
-      axios.post("http://127.0.0.1:3000/api/policystatus", requestData)
+      apiClient.post("/policystatus", requestData)
         .then((res) => {
           setErrorMessage("");
           let responseData = res.data.data;
@@ -213,7 +213,12 @@ const PolicyStatusLineChart = ({ onSendData = () => {} }) => {
     });
 
   }, [data, period, colorMap]);
-
+  
+  useEffect(() => {
+    if (!data || data.length === 0) return;
+    const Element = chartContainerRef.current;
+    onImgData(Element); 
+  }, [data]);
   return (
     <div style={{ 
       fontFamily: "Inter, 'Segoe UI', Tahoma, Geneva, Verdana, system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial",
@@ -357,26 +362,27 @@ const PolicyStatusLineChart = ({ onSendData = () => {} }) => {
             No data available for the selected period
           </div>
         )}
+        <div ref={chartContainerRef} style={{ position: "relative" }}>
+          <svg
+            ref={svgRef}
+            style={{
+              width: "100%",
+              height: "360px",
+              backgroundColor: "#fff",
+              boxShadow: "0 6px 20px rgba(2,6,23,0.06)",
+              borderRadius: "12px",
+            }}
+          />
 
-        <svg
-          ref={svgRef}
-          style={{
-            width: "100%",
-            height: "360px",
-            backgroundColor: "#fff",
-            boxShadow: "0 6px 20px rgba(2,6,23,0.06)",
-            borderRadius: "12px",
-          }}
-        />
-
-        {/* HTML legend below the chart to avoid overlap with the lines */}
-        <div style={{ display: "flex", gap: 20, alignItems: "center", justifyContent: "center", paddingTop: 12 }}>
-          {Object.entries(colorMap).map(([key, color]) => (
-            <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ width: 12, height: 12, borderRadius: 6, background: color, display: "inline-block", boxShadow: "0 1px 0 rgba(0,0,0,0.04)" }} />
-              <span style={{ fontSize: 13, color: "#374151", fontWeight: 600 }}>{key.replace(/_/g, " ")}</span>
-            </div>
-          ))}
+          {/* HTML legend below the chart to avoid overlap with the lines */}
+          <div style={{ display: "flex", gap: 20, alignItems: "center", justifyContent: "center", paddingTop: 12 }}>
+            {Object.entries(colorMap).map(([key, color]) => (
+              <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ width: 12, height: 12, borderRadius: 6, background: color, display: "inline-block", boxShadow: "0 1px 0 rgba(0,0,0,0.04)" }} />
+                <span style={{ fontSize: 13, color: "#374151", fontWeight: 600 }}>{key.replace(/_/g, " ")}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -1,17 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
 import * as d3 from 'd3';
 import ReinstatedTable from './reinstatedTable';
+import apiClient from '../../services/apiclient';
 
-const ReinstatedPieChart = ({ onSendData = () => {} }) => {
+const ReinstatedPieChart = ({ onSendData = () => {}, onImgData=()=>{} }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
   const [counts, setCounts] = useState({ total_reinstated: 0, others: 0 });
   const [policyData, setPolicyData] = useState({ reinstated: [], other: [] });
   const [showTable, setShowTable] = useState(false);
+  const chartContainerRef = useRef();
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:3000/api/reinstated')
+    apiClient.get('/reinstated')
       .then(response => {
         const data = response.data;
         onSendData(data);
@@ -119,6 +120,12 @@ const ReinstatedPieChart = ({ onSendData = () => {} }) => {
 
   }, [counts, policyData]);
 
+  useEffect(() => {
+    if (!counts || counts.length === 0) return;
+    const Element = chartContainerRef.current;
+    onImgData(Element); 
+  }, [counts]);
+
   const overlayStyle = {
     position: 'fixed',
     top: 0,
@@ -148,7 +155,9 @@ const ReinstatedPieChart = ({ onSendData = () => {} }) => {
     <>
       <div style={{ display: 'inline-block', textAlign: 'center', position: 'relative'}}>
         <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Reinstated Policy Status</div>
-        <svg ref={svgRef} />
+          <div ref={chartContainerRef} style={{ position: "relative" }}>
+            <svg ref={svgRef} />
+          </div>
         <div
           ref={tooltipRef}
           style={{

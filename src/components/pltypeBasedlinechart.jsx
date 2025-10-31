@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import * as d3 from "d3";
+import apiClient from "../../services/apiclient";
 
 const PltypeBasedLineChart = () => {
   const [period, setPeriod] = useState("YEAR");
@@ -13,6 +13,7 @@ const PltypeBasedLineChart = () => {
   const [loading, setLoading] = useState(false);
   const svgRef = useRef();
   const tooltipRef = useRef();
+
 
 const colorMap = React.useMemo(() => ({
     limitedmed: "#3498db",
@@ -55,7 +56,7 @@ const colorMap = React.useMemo(() => ({
       ? {data: "WEEK", weekDate}
       :{ data: period };
       
-      axios.post("http://127.0.0.1:3000/api/enrollments/pltype", requestData)
+      apiClient.post("/enrollments/pltype", requestData )
         .then((res) => {
           setErrorMessage("");
           let responseData = res.data.data;

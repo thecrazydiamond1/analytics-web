@@ -1,17 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
 import * as d3 from 'd3';
+import apiClient from '../../services/apiclient';
 
-const AgentsPieChart = ({ onSendData = () => {} }) => {
+const AgentsPieChart = ({ onSendData = () => {}, onImgData = () => {} }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
   const [counts, setCounts] = useState({ loggedin: 0, nonloggedin: 0 });
   const [agentsData, setAgentsData] = useState({ loggedin_agents: [], nonLoggedin_agents: [] });
   const [selectedAgentList, setSelectedAgentList] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const chartContainerRef = useRef();
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:3000/api/un-log/agents')
+    apiClient.get('/un-log/agents')
       .then(response => {
         const data = response.data;
         onSendData(data);
@@ -122,7 +123,11 @@ const AgentsPieChart = ({ onSendData = () => {} }) => {
     });
 
   }, [counts, agentsData]);
-
+  useEffect(() => {
+    if (!counts || counts.length === 0) return;
+    const Element = chartContainerRef.current;
+    onImgData(Element); 
+    }, [counts]);
   const filteredAgents = selectedAgentList
     ? selectedAgentList.filter(agentId => agentId.toLowerCase().includes(searchTerm.toLowerCase()))
     : [];
@@ -131,7 +136,9 @@ const AgentsPieChart = ({ onSendData = () => {} }) => {
     <>
       <div style={{ display: 'inline-block', textAlign: 'center', position: 'relative' }}>
         <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Agent Login Status</div>
+        <div ref={chartContainerRef} style={{ position: "relative" }}>
         <svg ref={svgRef} />
+        </div>
         <div
           ref={tooltipRef}
           style={{

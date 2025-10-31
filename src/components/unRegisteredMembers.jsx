@@ -1,17 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
 import * as d3 from 'd3';
+import apiClient from '../../services/apiclient';
 
-const MembersPieChart = ({ onSendData = () => {} }) => {
+const MembersPieChart = ({ onSendData = () => {}, onImgData=()=>{}}) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
   const [counts, setCounts] = useState({ unreg_counts: 0, reg_counts: 0 });
   const [membersData, setMembersData] = useState({ unreg: [], reg: [] });
   const [selectedMemberList, setSelectedMemberList] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const chartContainerRef = useRef();
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:3000/api/un-reg/members')
+    apiClient.get('/un-reg/members')
       .then(response => {
         const data = response.data;
         onSendData(data);
@@ -123,6 +124,12 @@ const MembersPieChart = ({ onSendData = () => {} }) => {
 
   }, [counts, membersData]);
 
+  useEffect(() => {
+    if (!counts || counts.length === 0 ) return;
+    const Element = chartContainerRef.current;
+    onImgData(Element); 
+  }, [counts]);
+  
   const filteredAgents = selectedMemberList
     ? selectedMemberList.filter(userid => userid.toLowerCase().includes(searchTerm.toLowerCase()))
     : [];
@@ -131,7 +138,9 @@ const MembersPieChart = ({ onSendData = () => {} }) => {
     <>
       <div style={{ display: 'inline-block', textAlign: 'center', position: 'relative'}}>
         <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Member Registration Status</div>
-        <svg ref={svgRef} />
+          <div ref={chartContainerRef} style={{ position: "relative" }}>
+            <svg ref={svgRef} />
+          </div>
         <div
           ref={tooltipRef}
           style={{
