@@ -7,27 +7,28 @@ import PolicyStatusLineChart from './policyStatusChart';
 import TierBasedLineChart from './tierBasedEnrollments';
 import '../index.css';
 import PltypeBasedStackedBarChart from './pltypeBasedEnrollment';
-import PltypeBasedLineChart from './pltypeBasedlinechart';
 import CommonReport from './CommonReport';
-import EmailReport from './emailReport';
 import SendEmail from './sendEmail';
+import SendExcelMail from './sendExcelMail';
+import { Link } from 'react-router-dom';
+import { useAuth } from './context/AuthProvider';
+import { toast, ToastContainer } from 'react-toastify';
+import apiClient from '../../services/apiclient';
+import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
 
-const Dashboard = () => {
+
+const MainDashboard = () => {
   const [dataFromPlType, setDataFromPlType] = useState('');
   const [dataFromAgent, setDataFromAgent] = useState('');
   const [dataFromMembers, setDataFromMembers] = useState('');
   const [dataFromTier, setDataFromTier] = useState('');
   const [dataFromReinstated, setDataFromReinstated] = useState('');
   const [dataFromPolicy, setDataFromPolicy] = useState('');
-  const [dataFromPlTypeSvg, setDataFromPlTypeSvg] = useState('');
-  const [dataFromAgentSvg, setDataFromAgentSvg] = useState('');
-  const [dataFromMembersSvg, setDataFromMembersSvg] = useState('');
-  const [dataFromTierSvg, setDataFromTierSvg] = useState('');
-  const [dataFromReinstatedSvg, setDataFromReinstatedSvg] = useState('');
-  const [dataFromPolicySvg, setDataFromPolicySvg] = useState('');
   const [showReport, setShowReport] = useState(false);
   const [emailReport, setEmailReport] = useState(false);
-
+  const auth = useAuth()
+  const token = localStorage.getItem('accesstoken')
 
   // Callback to receive data from child
   const handlePlTypeData = (data) => {
@@ -36,38 +37,29 @@ const Dashboard = () => {
   const handleAgentData = (data) => {
     setDataFromAgent(data);
   };
-    const handleMembersData = (data) => {
+  const handleMembersData = (data) => {
     setDataFromMembers(data);
   };
-    const handleTierData = (data) => {
+  const handleTierData = (data) => {
     setDataFromTier(data);
   };
-    const handlePolicyData = (data) => {
+  const handlePolicyData = (data) => {
     setDataFromPolicy(data);
   };
-    const handleReinstatedData = (data) => {
+  const handleReinstatedData = (data) => {
     setDataFromReinstated(data);
-  
   };
-
-  const handlePlTypeSvg = (data) => {
-    setDataFromPlTypeSvg(data);
-  };
-  const handleAgentSvg = (data) => {
-    setDataFromAgentSvg(data);
-  };
-    const handleMembersSvg = (data) => {
-    setDataFromMembersSvg(data);
-  };
-    const handleTierSvg = (data) => {
-    setDataFromTierSvg(data);
-  };
-    const handlePolicySvg = (data) => {
-    setDataFromPolicySvg(data);
-    
-  };
-    const handleReinstatedSvg = (data) => {
-    setDataFromReinstatedSvg(data);
+  const handleLogout = async () => {
+    const response = await axios.post('http://localhost:3000/api/logout', {}, {
+      headers: { Authorization: token },
+      withCredentials: true 
+    });
+    if (response.status === 200) {
+      auth.logout(token)
+      console.log("logged out");
+    } else {
+      toast.error("Logout error : cannot log out");
+    }
   };
     const overlayStyle = {
     position: 'fixed',
@@ -94,7 +86,7 @@ const Dashboard = () => {
     position: 'relative',
   };
   return (
-    
+    <>
     <div style={{ padding: '20px', fontFamily: 'Segoe UI, Arial, sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
       <header style={{ marginBottom: '20px', textAlign: 'center' }}>
         <h1 style={{ margin: 0, fontSize: '1.6rem', color: '#222' }}>Dashboard</h1>
@@ -112,29 +104,41 @@ const Dashboard = () => {
             Email Report
           </button>
       </div>
+    
+      <div style={{ textAlign: 'end', marginBottom: '20px' }}>
+          <Link to="/directlist" style={{ padding: '6px 12px', fontSize: '0.9rem', cursor: 'pointer', borderRadius: '4px', border: 'none', backgroundColor: 'purple', color: 'white', textDecoration:'none', display:'inline-block' }}>
+           Direct Downlines
+          </Link>
+      </div>
+
+      <div style={{ textAlign: 'end', marginBottom: '20px' }}>
+          <button onClick={() => handleLogout()} style={{ padding: '6px 12px', fontSize: '0.9rem', cursor: 'pointer', borderRadius: '4px', border: 'none', backgroundColor: 'red', color: 'white' }}>
+            Logout
+          </button>
+      </div>
 
       <main style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
         <div style={{ display: 'flex', gap: '16px', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ flex: 1, minWidth: 0, maxWidth: 360, background: '#fff', padding: 12, borderRadius: 8, boxShadow: '0 6px 16px rgba(0,0,0,0.04)' }}>
-            <NonLoggedInAgentsChart onSendData={handleAgentData} onImgData ={handleAgentSvg} />
+            <NonLoggedInAgentsChart onSendData={handleAgentData} />
           </div>
           <div style={{ flex: 1, minWidth: 0, maxWidth: 360, background: '#fff', padding: 12, borderRadius: 8, boxShadow: '0 6px 16px rgba(0,0,0,0.04)' }}>
-            <MembersPieChart onSendData={handleMembersData} onImgData={handleMembersSvg} />
+            <MembersPieChart onSendData={handleMembersData}/>
           </div>
           <div style={{ flex: 1, minWidth: 0, maxWidth: 360, background: '#fff', padding: 12, borderRadius: 8, boxShadow: '0 6px 16px rgba(0,0,0,0.04)' }}>
-            <ReinstatedPieChart onSendData={handleReinstatedData} onImgData={handleReinstatedSvg} />
+            <ReinstatedPieChart onSendData={handleReinstatedData} />
           </div>
         </div>
 
   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', alignItems: 'start' }}>
           <div style={{ background: '#fff', padding: 14, borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.06)', minHeight: 320 }}>
-            <PolicyStatusLineChart onSendData={handlePolicyData} onImgData={handlePolicySvg}/>
+            <PolicyStatusLineChart onSendData={handlePolicyData}/>
           </div>
         
         
 
           <div style={{ background: '#fff', padding: 14, borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.06)', minHeight: 320 }}>
-            <TierBasedLineChart onSendData={handleTierData} onImgData={handleTierSvg} />
+            <TierBasedLineChart onSendData={handleTierData} />
           </div>
 
           {/* <div style={{ background: '#fff', padding: 14, borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.06)', minHeight: 320 }}>
@@ -155,7 +159,7 @@ const Dashboard = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', alignItems: 'start' }}>
 
           <div style={{ background: '#fff', padding: 14, borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.06)', minHeight: 320 }}>
-            <PltypeBasedStackedBarChart onSendData={handlePlTypeData} onImgData={handlePlTypeSvg} />
+            <PltypeBasedStackedBarChart onSendData={handlePlTypeData}  />
           </div>
 
           {/* <div style={{ background: '#fff', padding: 12, borderRadius: 10, boxShadow: '0 8px 18px rgba(0,0,0,0.05)', minHeight: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -185,26 +189,16 @@ const Dashboard = () => {
           <div style={overlayStyle} onClick={() => setEmailReport(false)}>
             <div style={modalStyle} onClick={e => e.stopPropagation()}>
               <button onClick={() => setEmailReport(false)} style={{ position: 'absolute', top: 10, right: 10 }}>Close</button>
-              <SendEmail
-              dataFromAgent={dataFromAgent}
-              dataFromMembers={dataFromMembers}
-              dataFromPlType={dataFromPlType}
-              dataFromPolicy={dataFromPolicy}
-              dataFromReinstated={dataFromReinstated}
-              dataFromTier={dataFromTier}
-              dataFromPlTypeSvg={dataFromPlTypeSvg}
-              dataFromAgentSvg={dataFromAgentSvg}
-              dataFromMembersSvg={dataFromMembersSvg}
-              dataFromTierSvg={dataFromTierSvg}
-              dataFromPolicySvg={dataFromPolicySvg}
-              dataFromReinstatedSvg={dataFromReinstatedSvg}
-            />
+              <SendExcelMail/>
             </div>
           </div>
         )}
       </main>
+      <ToastContainer position="top-right" autoClose={3000} />
+
     </div>
+    </>
   );
 };
 
-export default Dashboard;
+export default MainDashboard;
